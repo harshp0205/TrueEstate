@@ -1,0 +1,52 @@
+import React from 'react';
+import './SummaryCards.css';
+
+function SummaryCards({ data }) {
+  const totalUnits = data?.totalItems || 0;
+  const totalAmount = data?.items?.reduce((sum, item) => sum + (item.totalAmount || 0), 0) || 0;
+  const totalDiscount = data?.items?.reduce((sum, item) => sum + (item.discount || 0), 0) || 0;
+  const itemCount = data?.items?.length || 0;
+
+  return (
+    <div className="summary-cards">
+      <div className="summary-card">
+        <div className="summary-label">
+          Total units sold
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="info-icon">
+            <circle cx="8" cy="8" r="7" stroke="#9CA3AF" strokeWidth="1.5"/>
+            <path d="M8 7.5V11.5M8 5.5H8.005" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div className="summary-value">{itemCount}</div>
+      </div>
+
+      <div className="summary-card">
+        <div className="summary-label">
+          Total Amount
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="info-icon">
+            <circle cx="8" cy="8" r="7" stroke="#9CA3AF" strokeWidth="1.5"/>
+            <path d="M8 7.5V11.5M8 5.5H8.005" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div className="summary-value">
+          ₹{totalAmount.toLocaleString('en-IN')} <span className="summary-count">({itemCount} SRs)</span>
+        </div>
+      </div>
+
+      <div className="summary-card">
+        <div className="summary-label">
+          Total Discount
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="info-icon">
+            <circle cx="8" cy="8" r="7" stroke="#9CA3AF" strokeWidth="1.5"/>
+            <path d="M8 7.5V11.5M8 5.5H8.005" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div className="summary-value">
+          ₹{totalDiscount.toLocaleString('en-IN')} <span className="summary-count">({itemCount} SRs)</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default SummaryCards;

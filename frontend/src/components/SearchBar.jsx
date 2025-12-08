@@ -10,15 +10,17 @@ function SearchBar({ value, onChange, onSubmit }) {
 
   return (
     <div className="search-bar">
+      <svg className="search-icon" width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18 18l-4.35-4.35" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
       <input
         type="text"
         className="search-input"
-        placeholder="Search by customer name or phone number"
+        placeholder="Name, Phone no."
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
       />
-      <span className="search-icon">🔍</span>
     </div>
   );
 }

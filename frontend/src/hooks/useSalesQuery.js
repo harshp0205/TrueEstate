@@ -105,7 +105,7 @@ export function useSalesQuery({
     ageRange.max,
     JSON.stringify(selectedCategories),
     JSON.stringify(selectedTags),
-    JSON.stringify(selectedPaymentMethods),
+    JSON.stringify(selectedPaymentMethods),  
     dateRange.from,
     dateRange.to,
     sortBy,

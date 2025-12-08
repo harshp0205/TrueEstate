@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSalesQuery } from '../hooks/useSalesQuery';
 import SearchBar from '../components/SearchBar';
-import FilterPanel from '../components/FilterPanel';
-import SortDropdown from '../components/SortDropdown';
+import FilterDropdown from '../components/FilterDropdown';
+import SummaryCards from '../components/SummaryCards';
 import TransactionsTable from '../components/TransactionsTable';
 import PaginationControls from '../components/PaginationControls';
 import './SalesDashboard.css';
@@ -21,6 +21,13 @@ function SalesDashboard() {
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);
   const pageSize = 10;
+
+  // Filter options
+  const regions = ['North', 'South', 'East', 'West'];
+  const genders = ['Male', 'Female'];
+  const categories = ['Clothing', 'Electronics', 'Home & Garden', 'Beauty', 'Sports', 'Books'];
+  const tags = ['New Arrival', 'Best Seller', 'Limited Edition', 'On Sale'];
+  const paymentMethods = ['Credit Card', 'Debit Card', 'Cash', 'Online Payment'];
 
   // Fetch data using the custom hook - backend handles ALL filtering, sorting, and pagination
   const { data, loading, error } = useSalesQuery({
@@ -44,32 +51,37 @@ function SalesDashboard() {
     setPage(1); // Reset to first page when search changes
   };
 
-  const handleFiltersChange = (updatedFilters) => {
-    // Update all filter states
-    setSelectedRegions(updatedFilters.selectedRegions);
-    setSelectedGenders(updatedFilters.selectedGenders);
-    setAgeRange(updatedFilters.ageRange);
-    setSelectedCategories(updatedFilters.selectedCategories);
-    setSelectedTags(updatedFilters.selectedTags);
-    setSelectedPaymentMethods(updatedFilters.selectedPaymentMethods);
-    setDateRange(updatedFilters.dateRange);
-    setPage(1); // Reset to first page when filters change
-  };
-
-  const handleSortChange = ({ sortBy: newSortBy, sortOrder: newSortOrder }) => {
-    setSortBy(newSortBy);
-    setSortOrder(newSortOrder);
-    setPage(1); // Reset to first page when sorting changes
-  };
-
   const handlePageChange = (newPage) => {
     setPage(newPage); // Only update page, keep filters/search/sort
   };
 
+  const handleSortChange = (newSortBy, newSortOrder) => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPage(1);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedRegions([]);
+    setSelectedGenders([]);
+    setAgeRange([null, null]);
+    setSelectedCategories([]);
+    setSelectedTags([]);
+    setSelectedPaymentMethods([]);
+    setDateRange([null, null]);
+    setPage(1);
+  };
+
+  const hasActiveFilters = selectedRegions.length > 0 || selectedGenders.length > 0 ||
+    selectedCategories.length > 0 || selectedTags.length > 0 ||
+    selectedPaymentMethods.length > 0 || ageRange[0] !== null || ageRange[1] !== null ||
+    dateRange[0] !== null || dateRange[1] !== null;
+
   return (
     <div className="sales-dashboard">
-      {/* Top: Search Bar */}
+      {/* Top Bar */}
       <div className="dashboard-header">
+        <h1 className="dashboard-title">Sales Management System</h1>
         <SearchBar
           value={search}
           onChange={handleSearchChange}
@@ -77,76 +89,137 @@ function SalesDashboard() {
         />
       </div>
 
-      {/* Body: Left (Filters) + Right (Main Content) */}
-      <div className="dashboard-body">
-        {/* Left column: Filter Panel */}
-        <FilterPanel
-          filters={{
-            selectedRegions,
-            selectedGenders,
-            ageRange,
-            selectedCategories,
-            selectedTags,
-            selectedPaymentMethods,
-            dateRange,
-          }}
-          onFiltersChange={handleFiltersChange}
-        />
+      {/* Filters Row */}
+      <div className="filters-row">
+        <div className="filters-left">
+          <button className="reset-button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M14 2L2 14M2 2l12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </button>
 
-        {/* Right column: Sort, Table, Pagination */}
-        <div className="dashboard-main">
-          {/* Sort Dropdown */}
-          <div className="sort-section">
-            <SortDropdown
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onChange={handleSortChange}
-            />
-          </div>
+          <FilterDropdown
+            label="Customer Region"
+            options={regions}
+            selected={selectedRegions}
+            onChange={(values) => { setSelectedRegions(values); setPage(1); }}
+          />
 
-          {/* Loading State */}
-          {loading && (
-            <div className="loading-state">Loading transactions...</div>
-          )}
+          <FilterDropdown
+            label="Gender"
+            options={genders}
+            selected={selectedGenders}
+            onChange={(values) => { setSelectedGenders(values); setPage(1); }}
+          />
 
-          {/* Error State */}
-          {error && (
-            <div className="error-state">Error: {error}</div>
-          )}
+          <FilterDropdown
+            label="Age Range"
+            options={['18-25', '26-35', '36-45', '46-60', '60+']}
+            selected={ageRange[0] && ageRange[1] ? [`${ageRange[0]}-${ageRange[1]}`] : []}
+            onChange={(values) => {
+              if (values.length > 0) {
+                const [min, max] = values[0].split('-').map(v => v === '+' ? 100 : parseInt(v));
+                setAgeRange([min, max]);
+              } else {
+                setAgeRange([null, null]);
+              }
+              setPage(1);
+            }}
+          />
 
-          {/* Invalid Range Warning */}
-          {!loading && !error && data?.invalidRange && (
-            <div className="warning-state">
-              Invalid age range, please adjust filters.
-            </div>
-          )}
+          <FilterDropdown
+            label="Product Category"
+            options={categories}
+            selected={selectedCategories}
+            onChange={(values) => { setSelectedCategories(values); setPage(1); }}
+          />
 
-          {/* Content: Table + Pagination (only show when not loading/error) */}
-          {!loading && !error && !data?.invalidRange && (
-            <>
-              {/* Results Summary */}
-              {data?.totalItems > 0 && (
-                <div className="results-summary">
-                  Showing {data.items.length} of {data.totalItems} transactions
-                </div>
-              )}
+          <FilterDropdown
+            label="Tags"
+            options={tags}
+            selected={selectedTags}
+            onChange={(values) => { setSelectedTags(values); setPage(1); }}
+          />
 
-              {/* Transactions Table - backend response is single source of truth */}
-              <TransactionsTable items={data?.items || []} />
+          <FilterDropdown
+            label="Payment Method"
+            options={paymentMethods}
+            selected={selectedPaymentMethods}
+            onChange={(values) => { setSelectedPaymentMethods(values); setPage(1); }}
+          />
 
-              {/* Pagination Controls */}
-              {data?.totalPages > 1 && (
-                <PaginationControls
-                  page={data?.page || page}
-                  totalPages={data?.totalPages || 1}
-                  hasNextPage={!!data?.hasNextPage}
-                  hasPrevPage={!!data?.hasPrevPage}
-                  onPageChange={handlePageChange}
-                />
-              )}
-            </>
-          )}
+          <FilterDropdown
+            label="Date"
+            options={['Last 7 days', 'Last 30 days', 'Last 90 days', 'This Year']}
+            selected={dateRange[0] && dateRange[1] ? ['Custom'] : []}
+            onChange={(values) => {
+              // This would need proper date range picker implementation
+              setPage(1);
+            }}
+          />
         </div>
+
+        <div className="filters-right">
+          <div className="sort-dropdown-compact">
+            <label>Sort by:</label>
+            <select
+              value={`${sortBy}-${sortOrder}`}
+              onChange={(e) => {
+                const [field, order] = e.target.value.split('-');
+                handleSortChange(field, order);
+              }}
+            >
+              <option value="customerName-asc">Customer Name (A-Z)</option>
+              <option value="customerName-desc">Customer Name (Z-A)</option>
+              <option value="date-desc">Date (Newest)</option>
+              <option value="date-asc">Date (Oldest)</option>
+              <option value="quantity-desc">Quantity (High to Low)</option>
+              <option value="quantity-asc">Quantity (Low to High)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="dashboard-content">
+        {/* Loading State */}
+        {loading && (
+          <div className="loading-state">Loading transactions...</div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="error-state">Error: {error}</div>
+        )}
+
+        {/* Invalid Range Warning */}
+        {!loading && !error && data?.invalidRange && (
+          <div className="warning-state">
+            Invalid age range, please adjust filters.
+          </div>
+        )}
+
+        {/* Content: Summary Cards + Table + Pagination */}
+        {!loading && !error && !data?.invalidRange && (
+          <>
+            {/* Summary Cards */}
+            <SummaryCards data={data} />
+
+            {/* Transactions Table */}
+            <TransactionsTable items={data?.items || []} />
+
+            {/* Pagination Controls */}
+            {data?.totalPages > 1 && (
+              <PaginationControls
+                page={data?.page || page}
+                totalPages={data?.totalPages || 1}
+                hasNextPage={!!data?.hasNextPage}
+                hasPrevPage={!!data?.hasPrevPage}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </>
+        )}
       </div>
     </div>
   );
