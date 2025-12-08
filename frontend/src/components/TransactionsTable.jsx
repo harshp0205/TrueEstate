@@ -41,6 +41,10 @@ function TransactionsTable({ items = [] }) {
             <th>Age</th>
             <th>Product Category</th>
             <th>Quantity</th>
+            <th>Total Amount</th>
+            <th>Customer region</th>
+            <th>Product ID</th>
+            <th>Employee name</th>
           </tr>
         </thead>
         <tbody>
@@ -64,6 +68,10 @@ function TransactionsTable({ items = [] }) {
               <td>{item.age || '-'}</td>
               <td>{item.productCategory || '-'}</td>
               <td>{formatNumber(item.quantity)}</td>
+              <td className="amount">₹ {formatNumber(item.totalAmount || item.finalAmount)}</td>
+              <td>{item.customerRegion || '-'}</td>
+              <td>{item.productId || '-'}</td>
+              <td>{item.employeeName || '-'}</td>
             </tr>
           ))}
         </tbody>

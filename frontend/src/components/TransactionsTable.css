@@ -10,7 +10,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  min-width: 1100px;
+  min-width: 1600px;
 }
 
 .transactions-table thead {
@@ -44,6 +44,11 @@
   padding: 16px;
   color: #111827;
   vertical-align: middle;
+}
+
+.transactions-table td.amount {
+  font-weight: 600;
+  color: #111827;
 }
 
 .copy-btn {
