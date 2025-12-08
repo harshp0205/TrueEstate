@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSalesQuery } from '../hooks/useSalesQuery';
+import Sidebar from '../components/Sidebar';
 import SearchBar from '../components/SearchBar';
 import FilterDropdown from '../components/FilterDropdown';
 import SummaryCards from '../components/SummaryCards';
@@ -78,16 +79,21 @@ function SalesDashboard() {
     dateRange[0] !== null || dateRange[1] !== null;
 
   return (
-    <div className="sales-dashboard">
-      {/* Top Bar */}
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Sales Management System</h1>
-        <SearchBar
-          value={search}
-          onChange={handleSearchChange}
-          onSubmit={() => setPage(1)}
-        />
-      </div>
+    <div className="dashboard-layout">
+      {/* Left Sidebar */}
+      <Sidebar />
+
+      {/* Main Content Area */}
+      <div className="sales-dashboard">
+        {/* Top Bar */}
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">Sales Management System</h1>
+          <SearchBar
+            value={search}
+            onChange={handleSearchChange}
+            onSubmit={() => setPage(1)}
+          />
+        </div>
 
       {/* Filters Row */}
       <div className="filters-row">
@@ -220,6 +226,7 @@ function SalesDashboard() {
             )}
           </>
         )}
+      </div>
       </div>
     </div>
   );
