@@ -107,7 +107,7 @@ npm run import:csv
 ### Access the Application
 
 #### Live Deployment
-- **Frontend**: https://truestate-frontend-lvpra5jn9-harshp0205s-projects.vercel.app/
+- **Frontend**: https://truestate-frontend-phi.vercel.app/
 - **Backend API**: https://truestate-gzmh.onrender.com/api/sales
 - **Backend Health Check**: https://truestate-gzmh.onrender.com/health
 - **Sample Query**: https://truestate-gzmh.onrender.com/api/sales?page=1&pageSize=10&sortBy=date&sortOrder=desc
