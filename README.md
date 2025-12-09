@@ -106,6 +106,36 @@ npm run import:csv
 
 ### Access the Application
 
-- **Frontend**: http://localhost:3000
+#### Live Deployment
+- **Frontend**: https://truestate-frontend-lvpra5jn9-harshp0205s-projects.vercel.app/
+- **Backend API**: https://truestate-gzmh.onrender.com/api/sales
+- **Backend Health Check**: https://truestate-gzmh.onrender.com/health
+- **Sample Query**: https://truestate-gzmh.onrender.com/api/sales?page=1&pageSize=10&sortBy=date&sortOrder=desc
+
+#### Local Development
+- **Frontend**: http://localhost:3002
 - **Backend API**: http://localhost:5000/api/sales
 - **Sample Query**: http://localhost:5000/api/sales?page=1&pageSize=10&sortBy=date&sortOrder=desc
+
+## Deployment
+
+The application is deployed and accessible online:
+
+- **Frontend** is deployed on **Vercel** with automatic deployments on every push to main branch
+- **Backend** is deployed on **Render** with automatic deployments from GitHub
+- **Database** is hosted on **MongoDB Atlas** (Cloud)
+
+For detailed deployment instructions, refer to [DEPLOYMENT.md](DEPLOYMENT.md)
+
+## Features
+
+- Real-time sales data monitoring with total transactions
+- Advanced search across customer names and phone numbers
+- 7 filter types (regions, gender, age, categories, tags, payment methods, dates)
+- Multi-field sorting (name, date, quantity)
+- Server-side pagination with 10 items per page
+- Live metrics calculation (total units, amount, discount)
+- Responsive UI with horizontal filters and scrollable table
+- Optimized MongoDB queries with aggregation
+- Input validation and sanitization for security
+- Production-ready error handling and edge cases
