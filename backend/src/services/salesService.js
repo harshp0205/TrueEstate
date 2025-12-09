@@ -201,15 +201,34 @@ export async function querySales(options = {}) {
   const skip = (validatedPage - 1) * validatedPageSize;
 
   try {
+    // Check if any filters are applied
+    const hasFilters = Object.keys(filter).length > 0;
+    
     // Execute query with timeout protection
-    const [items, totalItems] = await Promise.all([
+    const [items, totalItems, overallMetrics] = await Promise.all([
       SaleRecord.find(filter)
         .sort(sort)
         .skip(skip)
         .limit(validatedPageSize)
         .maxTimeMS(5000) // 5 second timeout for large queries
         .lean(),
-      SaleRecord.countDocuments(filter).maxTimeMS(5000)
+      SaleRecord.countDocuments(filter).maxTimeMS(5000),
+      // Get overall metrics (unfiltered) for summary cards
+      hasFilters ? SaleRecord.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalRecords: { $sum: 1 },
+            totalQuantity: { $sum: '$quantity' },
+            totalAmount: { $sum: '$totalAmount' },
+            totalDiscount: { 
+              $sum: { 
+                $subtract: ['$totalAmount', '$finalAmount'] 
+              } 
+            }
+          }
+        }
+      ]).maxTimeMS(5000) : Promise.resolve(null)
     ]);
 
     const totalPages = Math.ceil(totalItems / validatedPageSize);
@@ -224,6 +243,7 @@ export async function querySales(options = {}) {
         totalPages,
         hasNextPage: false,
         hasPrevPage: true,
+        overallMetrics: overallMetrics?.[0] || null,
         message: `Requested page ${validatedPage} exceeds total pages ${totalPages}`
       };
     }
@@ -235,7 +255,8 @@ export async function querySales(options = {}) {
       totalItems,
       totalPages,
       hasNextPage: validatedPage < totalPages,
-      hasPrevPage: validatedPage > 1
+      hasPrevPage: validatedPage > 1,
+      overallMetrics: overallMetrics?.[0] || null
     };
   } catch (error) {
     console.error('Database query error:', error);
