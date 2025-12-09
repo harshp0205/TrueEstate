@@ -2,34 +2,14 @@ import React from 'react';
 import './SummaryCards.css';
 
 function SummaryCards({ data }) {
-  // Check if we have overall metrics (when filters are applied)
-  const hasOverallMetrics = data?.overallMetrics;
+  // Always use overall metrics from backend (calculates from all filtered/unfiltered records)
+  const overallMetrics = data?.overallMetrics;
   
-  // Use overall metrics if available, otherwise calculate from current page items
-  const totalUnits = hasOverallMetrics 
-    ? data.overallMetrics.totalQuantity || 0
-    : (data?.items || []).reduce((sum, item) => sum + (Number(item?.quantity) || 0), 0);
-  
-  const totalAmount = hasOverallMetrics
-    ? data.overallMetrics.totalAmount || 0
-    : (data?.items || []).reduce((sum, item) => {
-        const amount = Number(item?.totalAmount || item?.finalAmount || 0);
-        return sum + (isNaN(amount) ? 0 : amount);
-      }, 0);
-  
-  const totalDiscount = hasOverallMetrics
-    ? data.overallMetrics.totalDiscount || 0
-    : (data?.items || []).reduce((sum, item) => {
-        const itemTotal = Number(item?.totalAmount || 0);
-        const itemFinal = Number(item?.finalAmount || 0);
-        const discountAmount = (isNaN(itemTotal) || isNaN(itemFinal)) ? 0 : (itemTotal - itemFinal);
-        return sum + Math.max(0, discountAmount);
-      }, 0);
-  
-  // Total record count - use overall metrics count if available
-  const recordCount = hasOverallMetrics 
-    ? data.overallMetrics.totalRecords || 0
-    : data?.totalItems || 0;
+  // Use overall metrics if available, otherwise fallback to 0
+  const totalUnits = overallMetrics?.totalQuantity || 0;
+  const totalAmount = overallMetrics?.totalAmount || 0;
+  const totalDiscount = overallMetrics?.totalDiscount || 0;
+  const recordCount = overallMetrics?.totalRecords || 0;
 
   return (
     <div className="summary-cards">

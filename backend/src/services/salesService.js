@@ -201,8 +201,29 @@ export async function querySales(options = {}) {
   const skip = (validatedPage - 1) * validatedPageSize;
 
   try {
-    // Check if any filters are applied
-    const hasFilters = Object.keys(filter).length > 0;
+    // Always calculate overall metrics based on current filter
+    // This gives totals for ALL filtered records (not just current page)
+    const aggregatePipeline = [];
+    
+    // Apply filter if exists
+    if (Object.keys(filter).length > 0) {
+      aggregatePipeline.push({ $match: filter });
+    }
+    
+    // Calculate metrics
+    aggregatePipeline.push({
+      $group: {
+        _id: null,
+        totalRecords: { $sum: 1 },
+        totalQuantity: { $sum: '$quantity' },
+        totalAmount: { $sum: '$totalAmount' },
+        totalDiscount: { 
+          $sum: { 
+            $subtract: ['$totalAmount', '$finalAmount'] 
+          } 
+        }
+      }
+    });
     
     // Execute query with timeout protection
     const [items, totalItems, overallMetrics] = await Promise.all([
@@ -213,25 +234,13 @@ export async function querySales(options = {}) {
         .maxTimeMS(5000) // 5 second timeout for large queries
         .lean(),
       SaleRecord.countDocuments(filter).maxTimeMS(5000),
-      // Get overall metrics (unfiltered) for summary cards
-      hasFilters ? SaleRecord.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalRecords: { $sum: 1 },
-            totalQuantity: { $sum: '$quantity' },
-            totalAmount: { $sum: '$totalAmount' },
-            totalDiscount: { 
-              $sum: { 
-                $subtract: ['$totalAmount', '$finalAmount'] 
-              } 
-            }
-          }
-        }
-      ]).maxTimeMS(5000) : Promise.resolve(null)
+      SaleRecord.aggregate(aggregatePipeline).option({ maxTimeMS: 5000 })
     ]);
 
     const totalPages = Math.ceil(totalItems / validatedPageSize);
+
+    // Extract metrics from aggregate result (it returns array)
+    const metrics = overallMetrics && overallMetrics.length > 0 ? overallMetrics[0] : null;
 
     // Handle case where requested page exceeds total pages
     if (validatedPage > totalPages && totalPages > 0) {
@@ -243,7 +252,7 @@ export async function querySales(options = {}) {
         totalPages,
         hasNextPage: false,
         hasPrevPage: true,
-        overallMetrics: overallMetrics?.[0] || null,
+        overallMetrics: metrics,
         message: `Requested page ${validatedPage} exceeds total pages ${totalPages}`
       };
     }
@@ -256,7 +265,7 @@ export async function querySales(options = {}) {
       totalPages,
       hasNextPage: validatedPage < totalPages,
       hasPrevPage: validatedPage > 1,
-      overallMetrics: overallMetrics?.[0] || null
+      overallMetrics: metrics
     };
   } catch (error) {
     console.error('Database query error:', error);
