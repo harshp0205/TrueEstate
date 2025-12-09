@@ -34,7 +34,8 @@ const saleRecordSchema = new mongoose.Schema({
   salespersonId: { type: String },
   employeeName: { type: String }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'salerecords' // Explicitly set collection name
 });
 
 // Indexes

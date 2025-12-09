@@ -6,6 +6,12 @@ import { SaleRecord } from '../models/saleRecord.js';
  * @returns {Promise<Object>} - Paginated sales results
  */
 export async function querySales(options = {}) {
+  console.log('🔍 querySales called with options:', options);
+  
+  // First, check if there's any data at all
+  const totalInDB = await SaleRecord.countDocuments();
+  console.log(`📊 Total documents in database: ${totalInDB}`);
+  
   const {
     search,
     regions = [],
@@ -200,6 +206,10 @@ export async function querySales(options = {}) {
   // Use validated pagination values
   const skip = (validatedPage - 1) * validatedPageSize;
 
+  console.log('🔎 MongoDB Filter:', JSON.stringify(filter, null, 2));
+  console.log('📑 Sort:', sort);
+  console.log('📄 Pagination: page', validatedPage, 'pageSize', validatedPageSize, 'skip', skip);
+
   try {
     // Always calculate overall metrics based on current filter
     // This gives totals for ALL filtered records (not just current page)
@@ -209,6 +219,8 @@ export async function querySales(options = {}) {
     if (Object.keys(filter).length > 0) {
       aggregatePipeline.push({ $match: filter });
     }
+    
+    console.log('📊 Aggregation Pipeline:', JSON.stringify(aggregatePipeline, null, 2));
     
     // Calculate metrics
     aggregatePipeline.push({
@@ -236,6 +248,9 @@ export async function querySales(options = {}) {
       SaleRecord.countDocuments(filter).maxTimeMS(5000),
       SaleRecord.aggregate(aggregatePipeline).option({ maxTimeMS: 5000 })
     ]);
+
+    console.log(`✅ Query Results: Found ${totalItems} total items, returning ${items.length} items`);
+    console.log('📈 Overall Metrics:', overallMetrics);
 
     const totalPages = Math.ceil(totalItems / validatedPageSize);
 
