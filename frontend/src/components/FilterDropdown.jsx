@@ -23,7 +23,12 @@ function FilterDropdown({ label, options, selected, onChange, isMulti = true }) 
         : [...selected, value];
       onChange(newSelected);
     } else {
-      onChange([value]);
+      // Single select mode
+      if (selected.includes(value)) {
+        onChange([]); // Deselect if already selected
+      } else {
+        onChange([value]); // Select only this one
+      }
       setIsOpen(false);
     }
   };

@@ -18,6 +18,7 @@ function SalesDashboard() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState([]);
   const [dateRange, setDateRange] = useState([null, null]);
+  const [selectedDateOption, setSelectedDateOption] = useState([]);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);
@@ -35,11 +36,11 @@ function SalesDashboard() {
     search,
     selectedRegions,
     selectedGenders,
-    ageRange,
+    ageRange: { min: ageRange[0], max: ageRange[1] },
     selectedCategories,
     selectedTags,
     selectedPaymentMethods,
-    dateRange,
+    dateRange: { from: dateRange[0], to: dateRange[1] },
     sortBy,
     sortOrder,
     page,
@@ -70,6 +71,7 @@ function SalesDashboard() {
     setSelectedTags([]);
     setSelectedPaymentMethods([]);
     setDateRange([null, null]);
+    setSelectedDateOption([]);
     setPage(1);
   };
 
@@ -98,7 +100,7 @@ function SalesDashboard() {
       {/* Filters Row */}
       <div className="filters-row">
         <div className="filters-left">
-          <button className="reset-button">
+          <button className="reset-button" onClick={clearAllFilters} title="Clear all filters">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M14 2L2 14M2 2l12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
@@ -121,11 +123,19 @@ function SalesDashboard() {
           <FilterDropdown
             label="Age Range"
             options={['18-25', '26-35', '36-45', '46-60', '60+']}
-            selected={ageRange[0] && ageRange[1] ? [`${ageRange[0]}-${ageRange[1]}`] : []}
+            selected={ageRange[0] !== null && ageRange[1] !== null ? 
+              (ageRange[1] >= 100 ? [`${ageRange[0]}+`] : [`${ageRange[0]}-${ageRange[1]}`]) : []}
+            isMulti={false}
             onChange={(values) => {
               if (values.length > 0) {
-                const [min, max] = values[0].split('-').map(v => v === '+' ? 100 : parseInt(v));
-                setAgeRange([min, max]);
+                const range = values[0];
+                if (range.includes('+')) {
+                  const min = parseInt(range.replace('+', ''));
+                  setAgeRange([min, 100]);
+                } else {
+                  const [min, max] = range.split('-').map(v => parseInt(v));
+                  setAgeRange([min, max]);
+                }
               } else {
                 setAgeRange([null, null]);
               }
@@ -156,10 +166,42 @@ function SalesDashboard() {
 
           <FilterDropdown
             label="Date"
-            options={['Last 7 days', 'Last 30 days', 'Last 90 days', 'This Year']}
-            selected={dateRange[0] && dateRange[1] ? ['Custom'] : []}
+            options={['Last 7 days', 'Last 30 days', 'Last 90 days', 'This Year', 'All Time']}
+            selected={selectedDateOption}
+            isMulti={false}
             onChange={(values) => {
-              // This would need proper date range picker implementation
+              if (values.length > 0) {
+                const option = values[0];
+                setSelectedDateOption([option]);
+                
+                const now = new Date();
+                let from = null;
+                let to = now.toISOString().split('T')[0];
+                
+                if (option === 'Last 7 days') {
+                  const date = new Date();
+                  date.setDate(date.getDate() - 7);
+                  from = date.toISOString().split('T')[0];
+                } else if (option === 'Last 30 days') {
+                  const date = new Date();
+                  date.setDate(date.getDate() - 30);
+                  from = date.toISOString().split('T')[0];
+                } else if (option === 'Last 90 days') {
+                  const date = new Date();
+                  date.setDate(date.getDate() - 90);
+                  from = date.toISOString().split('T')[0];
+                } else if (option === 'This Year') {
+                  from = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+                } else if (option === 'All Time') {
+                  from = null;
+                  to = null;
+                }
+                
+                setDateRange([from, to]);
+              } else {
+                setDateRange([null, null]);
+                setSelectedDateOption([]);
+              }
               setPage(1);
             }}
           />
